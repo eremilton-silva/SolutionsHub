@@ -79,20 +79,20 @@ export class Tender {
   organizationState: string;
 
   @Column({
-    type: 'enum',
-    enum: TenderType,
+    type: 'varchar',
+    // enum: TenderType, // Comentado para SQLite
   })
   type: TenderType;
 
   @Column({
-    type: 'enum',
-    enum: TenderModalidade,
+    type: 'varchar',
+    // enum: TenderModalidade, // Comentado para SQLite
   })
   modalidade: TenderModalidade;
 
   @Column({
-    type: 'enum',
-    enum: TenderStatus,
+    type: 'varchar',
+    // enum: TenderStatus, // Comentado para SQLite
     default: TenderStatus.DRAFT,
   })
   status: TenderStatus;
@@ -103,13 +103,13 @@ export class Tender {
   @Column('decimal', { precision: 15, scale: 2, nullable: true })
   maximumValue: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   publishDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   proposalDeadline: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   openingDate: Date;
 
   @Column('text', { nullable: true })
@@ -146,7 +146,7 @@ export class Tender {
   @Column('text', { nullable: true })
   evaluationCriteria: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   participationDeadline: Date;
 
   @Column({ default: false })
@@ -180,6 +180,6 @@ export class Tender {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   lastSyncAt: Date;
 }

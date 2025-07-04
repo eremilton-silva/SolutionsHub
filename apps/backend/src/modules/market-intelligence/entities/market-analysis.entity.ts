@@ -39,14 +39,14 @@ export class MarketAnalysis {
   description: string;
 
   @Column({
-    type: 'enum',
-    enum: AnalysisType,
+    type: 'varchar',
+    // enum: AnalysisType, // Comentado para SQLite
   })
   type: AnalysisType;
 
   @Column({
-    type: 'enum',
-    enum: AnalysisStatus,
+    type: 'varchar',
+    // enum: AnalysisStatus, // Comentado para SQLite
     default: AnalysisStatus.PENDING,
   })
   status: AnalysisStatus;
@@ -152,7 +152,7 @@ export class MarketAnalysis {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   processedAt: Date;
 
   @Column({ type: 'int', default: 0 })

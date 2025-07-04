@@ -60,8 +60,8 @@ export class TenderMonitoring {
   categoryFilters: string[];
 
   @Column({
-    type: 'enum',
-    enum: MonitoringStatus,
+    type: 'varchar',
+    // enum: MonitoringStatus, // Comentado para SQLite
     default: MonitoringStatus.ACTIVE,
   })
   status: MonitoringStatus;
@@ -97,7 +97,7 @@ export class TenderMonitoring {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   lastNotificationAt: Date;
 
   @Column({ default: 0 })

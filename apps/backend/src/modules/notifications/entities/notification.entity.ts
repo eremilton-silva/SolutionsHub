@@ -62,29 +62,29 @@ export class Notification {
   message: string;
 
   @Column({
-    type: 'enum',
-    enum: NotificationType,
+    type: 'varchar',
+    // enum: NotificationType, // Comentado para SQLite
     default: NotificationType.IN_APP,
   })
   type: NotificationType;
 
   @Column({
-    type: 'enum',
-    enum: NotificationPriority,
+    type: 'varchar',
+    // enum: NotificationPriority, // Comentado para SQLite
     default: NotificationPriority.MEDIUM,
   })
   priority: NotificationPriority;
 
   @Column({
-    type: 'enum',
-    enum: NotificationStatus,
+    type: 'varchar',
+    // enum: NotificationStatus, // Comentado para SQLite
     default: NotificationStatus.PENDING,
   })
   status: NotificationStatus;
 
   @Column({
-    type: 'enum',
-    enum: NotificationCategory,
+    type: 'varchar',
+    // enum: NotificationCategory, // Comentado para SQLite
   })
   category: NotificationCategory;
 
@@ -121,19 +121,19 @@ export class Notification {
   };
 
   // Configurações de entrega
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   scheduledAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   sentAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   deliveredAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   readAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   failedAt: Date;
 
   // Configurações de retry
@@ -143,7 +143,7 @@ export class Notification {
   @Column({ type: 'int', default: 3 })
   maxRetries: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   nextRetryAt: Date;
 
   // Log de erros
@@ -154,7 +154,7 @@ export class Notification {
   errorDetails: any;
 
   // Configurações de expiração
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   expiresAt: Date;
 
   // Metadados

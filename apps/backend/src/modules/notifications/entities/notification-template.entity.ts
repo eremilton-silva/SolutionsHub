@@ -22,14 +22,14 @@ export class NotificationTemplate {
   description: string;
 
   @Column({
-    type: 'enum',
-    enum: NotificationType,
+    type: 'varchar',
+    // enum: NotificationType, // Comentado para SQLite
   })
   type: NotificationType;
 
   @Column({
-    type: 'enum',
-    enum: NotificationCategory,
+    type: 'varchar',
+    // enum: NotificationCategory, // Comentado para SQLite
   })
   category: NotificationCategory;
 
