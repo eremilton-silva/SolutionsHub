@@ -11,8 +11,9 @@ import {
   Request,
 } from '@nestjs/common';
 import { MarketIntelligenceService, TenderSearchParams } from './market-intelligence.service';
-// import { TenderMonitoringService } from './services/tender-monitoring.service'; // Comentado temporariamente
+import { TenderMonitoringService } from './services/tender-monitoring.service';
 import { PncpService } from './services/pncp.service';
+import { PNCPPollingService } from './services/pncp-polling.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenderMonitoring } from './entities/tender-monitoring.entity';
 import { MarketAnalysis } from './entities/market-analysis.entity';
@@ -22,11 +23,12 @@ import { MarketAnalysis } from './entities/market-analysis.entity';
 export class MarketIntelligenceController {
   constructor(
     private marketIntelligenceService: MarketIntelligenceService,
-    // private monitoringService: TenderMonitoringService, // Comentado temporariamente
+    private monitoringService: TenderMonitoringService,
     private pncpService: PncpService,
+    private pncpPollingService: PNCPPollingService,
   ) {}
 
-  // Endpoints de Licitações
+  // === ENDPOINTS DE LICITAÇÕES ===
   @Get('tenders')
   async getTenders(@Query() params: TenderSearchParams) {
     return this.marketIntelligenceService.searchTenders(params);
@@ -45,6 +47,28 @@ export class MarketIntelligenceController {
   @Post('tenders/:id/mark-opportunity')
   async markAsOpportunity(@Param('id') id: string, @Request() req) {
     return this.marketIntelligenceService.markAsOpportunity(id, req.user.id);
+  }
+
+  // === ENDPOINTS DE SINCRONIZAÇÃO PNCP ===
+  @Post('pncp/sync-manual')
+  async syncPNCPManual(
+    @Body() body: { dataInicial?: string; dataFinal?: string },
+  ) {
+    const { dataInicial, dataFinal } = body;
+    const result = await this.pncpPollingService.syncLicitacoesManual(
+      dataInicial,
+      dataFinal,
+    );
+    
+    return {
+      message: 'Sincronização manual executada',
+      resultado: result,
+    };
+  }
+
+  @Get('pncp/polling-status')
+  async getPollingStatus() {
+    return this.pncpPollingService.getPollingStatus();
   }
 
   @Post('tenders/sync')

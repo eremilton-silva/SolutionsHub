@@ -10,18 +10,50 @@ import {
 } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
+export enum TenderStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  OPEN = 'open',
+  CLARIFICATION = 'clarification',
+  PROPOSAL_OPENING = 'proposal_opening',
+  EVALUATION = 'evaluation',
+  HOMOLOGATION = 'homologation',
+  ADJUDICATION = 'adjudication',
+  CANCELLED = 'cancelled',
+  SUSPENDED = 'suspended',
+  REVOKED = 'revoked',
+  FAILED = 'failed',
+}
+
+export enum TenderType {
+  CONCORRENCIA = 'concorrencia',
+  TOMADA_PRECOS = 'tomada_precos',
+  CONVITE = 'convite',
+  CONCURSO = 'concurso',
+  LEILAO = 'leilao',
+  PREGAO_PRESENCIAL = 'pregao_presencial',
+  PREGAO_ELETRONICO = 'pregao_eletronico',
+  RDC = 'rdc',
+  DIALOGO_COMPETITIVO = 'dialogo_competitivo',
+}
+
+export enum TenderModalidade {
+  PRESENCIAL = 'presencial',
+  ELETRONICO = 'eletronico',
+  HIBRIDO = 'hibrido',
+}
+
 @Entity('tenders')
 @Index(['numeroControlePNCP'], { unique: true })
-@Index(['situacaoCompraNome', 'dataPublicacaoPncp'])
+@Index(['situacaoCompra', 'dataPublicacaoPncp'])
 @Index(['organizationCnpj'])
 @Index(['valorTotalEstimado'])
 @Index(['modalidadeNome'])
-@Index(['unidadeUfSigla'])
 export class Tender {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // === CAMPOS PRINCIPAIS DO PNCP ===
+  // Campos principais do PNCP
   @Column({ unique: true })
   numeroControlePNCP: string;
 
@@ -40,7 +72,7 @@ export class Tender {
   @Column({ nullable: true })
   tipoInstrumentoConvocatorioNome: string;
 
-  // === MODALIDADE ===
+  // Modalidade
   @Column({ nullable: true })
   modalidadeCodigo: number;
 
@@ -50,21 +82,21 @@ export class Tender {
   @Column({ nullable: true })
   modoDisputa: string;
 
-  // === VALORES ===
+  // Valores
   @Column('decimal', { precision: 15, scale: 2, nullable: true })
   valorTotalEstimado: number;
 
   @Column('decimal', { precision: 15, scale: 2, nullable: true })
   valorTotalHomologado: number;
 
-  // === SITUAÇÃO ===
+  // Situação
   @Column({ nullable: true })
   situacaoCompraCodigo: number;
 
   @Column()
   situacaoCompraNome: string;
 
-  // === DATAS IMPORTANTES ===
+  // Datas importantes
   @Column({ type: 'datetime' })
   dataPublicacaoPncp: Date;
 
@@ -74,7 +106,7 @@ export class Tender {
   @Column({ type: 'datetime', nullable: true })
   dataEncerramentoProposta: Date;
 
-  // === ÓRGÃO E ENTIDADE ===
+  // Órgão e entidade
   @Column()
   organizationCnpj: string;
 
@@ -87,7 +119,7 @@ export class Tender {
   @Column({ nullable: true })
   organizationEsferaId: string;
 
-  // === UNIDADE DO ÓRGÃO ===
+  // Unidade do órgão
   @Column({ nullable: true })
   unidadeCodigoUnidade: string;
 
@@ -106,7 +138,7 @@ export class Tender {
   @Column({ nullable: true })
   unidadeCodigoIbge: string;
 
-  // === FLAGS ESPECIAIS ===
+  // Flags especiais
   @Column({ default: false })
   srp: boolean; // Sistema de Registro de Preços
 
@@ -115,44 +147,23 @@ export class Tender {
 
   @Column({ nullable: true })
   licitacaoAssociada: string;
+  estimatedValue: number;
 
-  // === CAMPOS INTERNOS DE GESTÃO ===
-  @Column({ default: false })
-  isMonitored: boolean;
-
-  @Column({ default: false })
-  isOpportunity: boolean;
-
-  @Column('simple-json', { nullable: true })
-  keywords: string[];
-
-  @Column('simple-json', { nullable: true })
-  categories: string[];
-
-  @Column({ type: 'float', default: 0 })
-  relevanceScore: number;
-
-  @Column({ nullable: true })
-  assignedUserId: string;
-
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'assignedUserId' })
-  assignedUser: User;
-
-  @Column('simple-json', { nullable: true })
-  metadata: Record<string, any>;
-
-  // === CAMPOS DE AUDITORIA ===
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column('decimal', { precision: 15, scale: 2, nullable: true })
+  maximumValue: number;
 
   @Column({ type: 'datetime', nullable: true })
-  lastSyncAt: Date;
+  publishDate: Date;
 
-  // === CAMPOS LEGADOS (manter compatibilidade) ===
+  @Column({ type: 'datetime', nullable: true })
+  proposalDeadline: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  openingDate: Date;
+
+  @Column('text', { nullable: true })
+  observations: string;
+
   @Column('simple-json', { nullable: true })
   documents: Array<{
     name: string;
@@ -184,6 +195,40 @@ export class Tender {
   @Column('text', { nullable: true })
   evaluationCriteria: string;
 
-  @Column('text', { nullable: true })
-  observations: string;
+  @Column({ type: 'datetime', nullable: true })
+  participationDeadline: Date;
+
+  @Column({ default: false })
+  isMonitored: boolean;
+
+  @Column({ default: false })
+  isOpportunity: boolean;
+
+  @Column('simple-json', { nullable: true })
+  keywords: string[];
+
+  @Column('simple-json', { nullable: true })
+  categories: string[];
+
+  @Column({ type: 'float', default: 0 })
+  relevanceScore: number;
+
+  @Column({ nullable: true })
+  assignedUserId: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assignedUserId' })
+  assignedUser: User;
+
+  @Column('simple-json', { nullable: true })
+  metadata: Record<string, any>;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  lastSyncAt: Date;
 }

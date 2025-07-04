@@ -20,13 +20,18 @@ export class AppController {
       modules: {
         auth: 'active',
         crm: 'active',
-        marketIntelligence: 'pending',
-        opportunities: 'pending',
-        notifications: 'pending',
+        marketIntelligence: 'active', // ✅ Agora ativo com integração PNCP
+        opportunities: 'active',
+        notifications: 'active',
         financial: 'pending',
         documents: 'pending',
         analytics: 'pending',
         productivity: 'pending',
+      },
+      integrations: {
+        pncp: 'active', // ✅ Integração PNCP funcionando
+        database: 'active',
+        scheduler: 'active'
       }
     };
   }
@@ -42,7 +47,16 @@ export class AppController {
       endpoints: {
         auth: '/api/v1/auth',
         crm: '/api/v1/crm',
+        marketIntelligence: '/api/v1/market-intelligence',
+        opportunities: '/api/v1/opportunities',
+        notifications: '/api/v1/notifications',
         health: '/api/v1/health',
+      },
+      features: {
+        pncpIntegration: 'Integração automática com Portal Nacional de Contratações Públicas',
+        automatedPolling: 'Coleta automatizada de licitações a cada 30 minutos',
+        opportunityDetection: 'Detecção inteligente de oportunidades relevantes',
+        marketAnalytics: 'Análises avançadas de mercado e tendências'
       }
     };
   }

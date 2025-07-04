@@ -127,7 +127,7 @@ export class TenderMonitoringService {
   private matchesCriteria(tender: Tender, monitoring: TenderMonitoring): boolean {
     // Check keywords
     if (monitoring.keywords && monitoring.keywords.length > 0) {
-      const searchText = `${tender.title} ${tender.description} ${tender.observations}`.toLowerCase();
+      const searchText = `${tender.objetoCompra} ${tender.observations || ''}`.toLowerCase();
       const hasKeywordMatch = monitoring.keywords.some(keyword => 
         searchText.includes(keyword.toLowerCase())
       );
@@ -138,12 +138,12 @@ export class TenderMonitoringService {
     if (monitoring.organizationFilters) {
       const { states, municipalities, cnpjs, excludeCnpjs } = monitoring.organizationFilters;
       
-      if (states && states.length > 0 && tender.organizationState) {
-        if (!states.includes(tender.organizationState)) return false;
+      if (states && states.length > 0 && tender.unidadeUfSigla) {
+        if (!states.includes(tender.unidadeUfSigla)) return false;
       }
 
-      if (municipalities && municipalities.length > 0 && tender.organizationMunicipality) {
-        if (!municipalities.includes(tender.organizationMunicipality)) return false;
+      if (municipalities && municipalities.length > 0 && tender.unidadeMunicipioNome) {
+        if (!municipalities.includes(tender.unidadeMunicipioNome)) return false;
       }
 
       if (cnpjs && cnpjs.length > 0 && tender.organizationCnpj) {
@@ -159,23 +159,23 @@ export class TenderMonitoringService {
     if (monitoring.valueFilters) {
       const { minValue, maxValue } = monitoring.valueFilters;
       
-      if (minValue && tender.estimatedValue < minValue) {
+      if (minValue && tender.valorTotalEstimado && tender.valorTotalEstimado < minValue) {
         return false;
       }
 
-      if (maxValue && tender.estimatedValue > maxValue) {
+      if (maxValue && tender.valorTotalEstimado && tender.valorTotalEstimado > maxValue) {
         return false;
       }
     }
 
-    // Check type filters
+    // Check type filters (using modalidade)
     if (monitoring.typeFilters && monitoring.typeFilters.length > 0) {
-      if (!monitoring.typeFilters.includes(tender.type)) return false;
+      if (!monitoring.typeFilters.includes(tender.modalidadeNome)) return false;
     }
 
-    // Check category filters (using tender type as category for now)
+    // Check category filters (using modalidade as category for now)
     if (monitoring.categoryFilters && monitoring.categoryFilters.length > 0) {
-      if (!monitoring.categoryFilters.includes(tender.type)) return false;
+      if (!monitoring.categoryFilters.includes(tender.modalidadeNome)) return false;
     }
 
     return true;

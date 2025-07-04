@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere, Like, Between } from 'typeorm';
-import { Tender, TenderStatus, TenderType } from './entities/tender.entity';
+import { Repository, FindOptionsWhere, Like, Between, ILike } from 'typeorm';
+import { Tender } from './entities/tender.entity';
+import { TenderStatus, TenderType } from './enums/tender.enums';
 import { MarketAnalysis, AnalysisType, AnalysisStatus } from './entities/market-analysis.entity';
 import { PncpService } from './services/pncp.service';
 // import { TenderMonitoringService } from './services/tender-monitoring.service'; // Comentado temporariamente
@@ -10,9 +11,9 @@ export interface TenderSearchParams {
   page?: number;
   limit?: number;
   search?: string;
-  status?: TenderStatus;
-  type?: TenderType;
-  organizationState?: string;
+  situacao?: string; // Substituindo status por situacao (situacaoCompraNome)
+  modalidade?: string; // Substituindo type por modalidade (modalidadeNome)
+  organizationState?: string; // Usando unidadeUfSigla
   valueMin?: number;
   valueMax?: number;
   dateStart?: Date;
@@ -20,6 +21,11 @@ export interface TenderSearchParams {
   isMonitored?: boolean;
   isOpportunity?: boolean;
   assignedUserId?: string;
+  // Novos filtros específicos do PNCP
+  organizationCnpj?: string;
+  numeroControlePNCP?: string;
+  srp?: boolean;
+  compraEmergencial?: boolean;
 }
 
 @Injectable()
@@ -35,32 +41,59 @@ export class MarketIntelligenceService {
 
   // Buscar licitações
   async searchTenders(params: TenderSearchParams = {}) {
-    const { page = 1, limit = 20, search, status, type, organizationState, valueMin, valueMax, dateStart, dateEnd, isMonitored, isOpportunity, assignedUserId } = params;
+    const { 
+      page = 1, 
+      limit = 20, 
+      search, 
+      situacao, 
+      modalidade, 
+      organizationState, 
+      valueMin, 
+      valueMax, 
+      dateStart, 
+      dateEnd, 
+      isMonitored, 
+      isOpportunity, 
+      assignedUserId,
+      organizationCnpj,
+      numeroControlePNCP,
+      srp,
+      compraEmergencial
+    } = params;
     
     const where: FindOptionsWhere<Tender> = {};
     
     if (search) {
-      where.title = Like(`%${search}%`);
+      // Buscar no objeto da compra ou na razão social da organização
+      where.objetoCompra = ILike(`%${search}%`);
     }
     
-    if (status) {
-      where.status = status;
+    if (situacao) {
+      where.situacaoCompraNome = situacao;
     }
     
-    if (type) {
-      where.type = type;
+    if (modalidade) {
+      where.modalidadeNome = modalidade;
     }
     
     if (organizationState) {
-      where.organizationState = organizationState;
+      where.unidadeUfSigla = organizationState;
+    }
+    
+    if (organizationCnpj) {
+      where.organizationCnpj = organizationCnpj;
+    }
+    
+    if (numeroControlePNCP) {
+      where.numeroControlePNCP = numeroControlePNCP;
     }
     
     if (valueMin !== undefined || valueMax !== undefined) {
-      where.estimatedValue = Between(valueMin || 0, valueMax || 999999999);
+      where.valorTotalEstimado = Between(valueMin || 0, valueMax || 999999999);
     }
     
     if (dateStart || dateEnd) {
-      where.publishDate = Between(dateStart || new Date('1970-01-01'), dateEnd || new Date());
+      where.dataPublicacaoPncp = Between(dateStart || new Date('1970-01-01'), dateEnd || new Date());
     }
     
     if (isMonitored !== undefined) {
@@ -74,13 +107,21 @@ export class MarketIntelligenceService {
     if (assignedUserId) {
       where.assignedUserId = assignedUserId;
     }
+    
+    if (srp !== undefined) {
+      where.srp = srp;
+    }
+    
+    if (compraEmergencial !== undefined) {
+      where.compraEmergencial = compraEmergencial;
+    }
 
     const [tenders, total] = await this.tenderRepository.findAndCount({
       where,
       relations: ['assignedUser'],
       skip: (page - 1) * limit,
       take: limit,
-      order: { publishDate: 'DESC' },
+      order: { dataPublicacaoPncp: 'DESC' },
     });
 
     return {
@@ -135,9 +176,9 @@ export class MarketIntelligenceService {
 
       for (const pncpTender of searchResult.tenders) {
         try {
-          // Verificar se já existe
+          // Verificar se já existe usando numeroControlePNCP
           const existingTender = await this.tenderRepository.findOne({
-            where: { pncpId: pncpTender.numeroControlePNCP },
+            where: { numeroControlePNCP: pncpTender.numeroControlePNCP },
           });
 
           if (!existingTender) {
@@ -178,21 +219,26 @@ export class MarketIntelligenceService {
       tendersLastMonth,
     ] = await Promise.all([
       this.tenderRepository.count(),
-      this.tenderRepository.count({ where: { status: TenderStatus.OPEN } }),
+      // Considerar como "abertas" as licitações com situação que permite participação
+      this.tenderRepository.count({ 
+        where: { 
+          situacaoCompraNome: 'Homologada' // Ajustar conforme os valores do PNCP
+        } 
+      }),
       this.tenderRepository.count({ where: { isMonitored: true } }),
       this.tenderRepository.count({ where: { isOpportunity: true } }),
       this.tenderRepository
         .createQueryBuilder('tender')
-        .select('SUM(tender.estimatedValue)', 'total')
+        .select('SUM(tender.valorTotalEstimado)', 'total')
         .getRawOne(),
       this.tenderRepository
         .createQueryBuilder('tender')
-        .where('tender.publishDate >= :start', { start: new Date(new Date().getFullYear(), new Date().getMonth(), 1) })
+        .where('tender.dataPublicacaoPncp >= :start', { start: new Date(new Date().getFullYear(), new Date().getMonth(), 1) })
         .getCount(),
       this.tenderRepository
         .createQueryBuilder('tender')
-        .where('tender.publishDate >= :start', { start: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1) })
-        .andWhere('tender.publishDate < :end', { end: new Date(new Date().getFullYear(), new Date().getMonth(), 1) })
+        .where('tender.dataPublicacaoPncp >= :start', { start: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1) })
+        .andWhere('tender.dataPublicacaoPncp < :end', { end: new Date(new Date().getFullYear(), new Date().getMonth(), 1) })
         .getCount(),
     ]);
 
@@ -215,29 +261,29 @@ export class MarketIntelligenceService {
     const monthlyData = await this.tenderRepository
       .createQueryBuilder('tender')
       .select([
-        'EXTRACT(YEAR FROM tender.publishDate) as year',
-        'EXTRACT(MONTH FROM tender.publishDate) as month',
+        'EXTRACT(YEAR FROM tender.dataPublicacaoPncp) as year',
+        'EXTRACT(MONTH FROM tender.dataPublicacaoPncp) as month',
         'COUNT(*) as count',
-        'SUM(tender.estimatedValue) as value',
+        'SUM(tender.valorTotalEstimado) as value',
       ])
-      .where('tender.publishDate >= :date', { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) })
-      .groupBy('EXTRACT(YEAR FROM tender.publishDate), EXTRACT(MONTH FROM tender.publishDate)')
+      .where('tender.dataPublicacaoPncp >= :date', { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000) })
+      .groupBy('EXTRACT(YEAR FROM tender.dataPublicacaoPncp), EXTRACT(MONTH FROM tender.dataPublicacaoPncp)')
       .orderBy('year, month')
       .getRawMany();
 
-    // Licitações por tipo
-    const typeData = await this.tenderRepository
+    // Licitações por modalidade
+    const modalityData = await this.tenderRepository
       .createQueryBuilder('tender')
-      .select(['tender.type as type', 'COUNT(*) as count'])
-      .groupBy('tender.type')
+      .select(['tender.modalidadeNome as modalidade', 'COUNT(*) as count'])
+      .groupBy('tender.modalidadeNome')
       .getRawMany();
 
-    // Licitações por estado
+    // Licitações por estado (UF)
     const stateData = await this.tenderRepository
       .createQueryBuilder('tender')
-      .select(['tender.organizationState as state', 'COUNT(*) as count'])
-      .where('tender.organizationState IS NOT NULL')
-      .groupBy('tender.organizationState')
+      .select(['tender.unidadeUfSigla as state', 'COUNT(*) as count'])
+      .where('tender.unidadeUfSigla IS NOT NULL')
+      .groupBy('tender.unidadeUfSigla')
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
@@ -246,19 +292,19 @@ export class MarketIntelligenceService {
     const organizationData = await this.tenderRepository
       .createQueryBuilder('tender')
       .select([
-        'tender.organizationName as name',
+        'tender.organizationRazaoSocial as name',
         'COUNT(*) as count',
-        'SUM(tender.estimatedValue) as value',
+        'SUM(tender.valorTotalEstimado) as value',
       ])
-      .where('tender.organizationName IS NOT NULL')
-      .groupBy('tender.organizationName')
+      .where('tender.organizationRazaoSocial IS NOT NULL')
+      .groupBy('tender.organizationRazaoSocial')
       .orderBy('count', 'DESC')
       .limit(10)
       .getRawMany();
 
     return {
       monthly: monthlyData,
-      byType: typeData,
+      byModality: modalityData,
       byState: stateData,
       topOrganizations: organizationData,
     };
@@ -369,7 +415,11 @@ export class MarketIntelligenceService {
   private async performOpportunityMapping(analysis: MarketAnalysis): Promise<any> {
     // Implementar mapeamento de oportunidades
     const opportunities = await this.tenderRepository.find({
-      where: { isOpportunity: true, status: TenderStatus.OPEN },
+      where: { 
+        isOpportunity: true, 
+        // Filtrar por situações que ainda permitem participação
+        situacaoCompraNome: 'Homologada' // Ajustar conforme valores do PNCP
+      },
       order: { relevanceScore: 'DESC' },
       take: 20,
     });
@@ -377,11 +427,14 @@ export class MarketIntelligenceService {
     return {
       highValueTenders: opportunities.map(tender => ({
         id: tender.id,
-        title: tender.title,
-        organization: tender.organizationName,
-        value: tender.estimatedValue,
-        deadline: tender.proposalDeadline,
+        title: tender.objetoCompra, // Usar objetoCompra como título
+        organization: tender.organizationRazaoSocial,
+        value: tender.valorTotalEstimado,
+        deadline: tender.dataEncerramentoProposta,
         relevanceScore: tender.relevanceScore,
+        numeroControlePNCP: tender.numeroControlePNCP,
+        modalidade: tender.modalidadeNome,
+        situacao: tender.situacaoCompraNome,
       })),
     };
   }
