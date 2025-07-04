@@ -7,6 +7,19 @@ export const createTypeOrmConfig = (
   const dbConfig = appConfigService.databaseConfig;
   const appConfig = appConfigService.appConfig;
 
+  // Use SQLite for development if PostgreSQL is not available
+  if (appConfig.nodeEnv === 'development') {
+    return {
+      type: 'sqlite',
+      database: './solution_hub_dev.sqlite',
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      migrations: [__dirname + '/migrations/*{.ts,.js}'],
+      synchronize: true,
+      logging: true,
+    };
+  }
+
+  // Production PostgreSQL configuration
   return {
     type: 'postgres',
     host: dbConfig.host,
@@ -16,8 +29,8 @@ export const createTypeOrmConfig = (
     database: dbConfig.database,
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [__dirname + '/migrations/*{.ts,.js}'],
-    synchronize: appConfig.nodeEnv === 'development',
-    logging: appConfig.nodeEnv === 'development',
-    ssl: appConfig.nodeEnv === 'production' ? { rejectUnauthorized: false } : false,
+    synchronize: false,
+    logging: false,
+    ssl: { rejectUnauthorized: false },
   };
 };

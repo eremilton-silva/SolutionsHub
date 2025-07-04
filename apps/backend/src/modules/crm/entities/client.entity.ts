@@ -41,15 +41,13 @@ export class Client {
   document: string; // CPF or CNPJ
 
   @Column({
-    type: 'enum',
-    enum: ClientType,
+    type: 'varchar',
     default: ClientType.COMPANY,
   })
   type: ClientType;
 
   @Column({
-    type: 'enum',
-    enum: ClientStatus,
+    type: 'varchar',
     default: ClientStatus.PROSPECT,
   })
   status: ClientStatus;
@@ -69,7 +67,7 @@ export class Client {
   @Column('text', { nullable: true })
   notes: string;
 
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true })
   address: {
     street: string;
     number: string;
@@ -81,7 +79,7 @@ export class Client {
     country: string;
   };
 
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true })
   contacts: {
     name: string;
     email: string;
@@ -90,7 +88,7 @@ export class Client {
     isPrimary: boolean;
   }[];
 
-  @Column('jsonb', { nullable: true })
+  @Column('text', { nullable: true })
   customFields: Record<string, any>;
 
   @Column('uuid', { nullable: true })

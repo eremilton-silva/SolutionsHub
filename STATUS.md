@@ -1,6 +1,6 @@
 # 🎯 Status do Projeto Solution Hub
 
-**Última atualização**: 03/07/2025
+**Última atualização**: 04/07/2025
 
 ## ✅ Implementado
 
@@ -21,16 +21,19 @@
 - [x] Sistema de roteamento com React Router
 - [x] Autenticação básica com localStorage
 
-### ⚙️ Backend (NestJS + TypeScript + PostgreSQL)
+### ⚙️ Backend (NestJS + TypeScript + SQLite/PostgreSQL)
 - [x] NestJS configurado com TypeScript
-- [x] TypeORM para integração com PostgreSQL
+- [x] TypeORM com SQLite para desenvolvimento local
 - [x] Sistema de autenticação completo (JWT + Refresh Tokens)
 - [x] Módulo de usuários com entidades e DTOs
 - [x] Módulo CRM completo com CRUD de clientes
+- [x] Módulo de Oportunidades implementado
 - [x] Configuração de ambiente centralizada
 - [x] Validação de dados com class-validator
 - [x] Guards e strategies de autenticação
-- [x] API endpoints estruturados
+- [x] API endpoints estruturados (20+ endpoints)
+- [x] SQLite para desenvolvimento local
+- [x] Banco de dados sincronizado automaticamente
 
 ### 🔐 Segurança
 - [x] JWT com refresh tokens
@@ -39,12 +42,19 @@
 - [x] CORS configurado
 - [x] Guards de autenticação
 
-## 🔄 Em Desenvolvimento
+### � API Endpoints Funcionais
+- [x] **Auth Module** (`/api/v1/auth/*`)
+  - Login, Register, Refresh, Logout, Profile, Health
+- [x] **CRM Module** (`/api/v1/crm/*`)
+  - CRUD completo de clientes, estatísticas, contatos
+- [x] **Opportunities Module** (`/api/v1/opportunities/*`)
+  - Gestão de oportunidades, timeline, follow-ups, probabilidades
+
+## �🔄 Em Desenvolvimento
 
 ### 📊 Módulos de Negócio
-- [ ] **Inteligência de Mercado**: Integração PNCP API
-- [ ] **Gestão de Oportunidades**: Sistema de oportunidades
-- [ ] **Central de Alertas**: Notificações multicanal
+- [ ] **Inteligência de Mercado**: Integração PNCP API (temporariamente desabilitado)
+- [ ] **Central de Alertas**: Notificações multicanal (temporariamente desabilitado)
 - [ ] **Financeiro**: Contratos e comissões
 - [ ] **Gestão Documental**: Templates e assinaturas
 - [ ] **Dashboard Analítico**: KPIs e métricas

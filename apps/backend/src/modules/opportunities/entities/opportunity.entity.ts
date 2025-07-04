@@ -56,22 +56,19 @@ export class Opportunity {
   description: string;
 
   @Column({
-    type: 'enum',
-    enum: OpportunityStatus,
+    type: 'varchar',
     default: OpportunityStatus.LEAD,
   })
   status: OpportunityStatus;
 
   @Column({
-    type: 'enum',
-    enum: OpportunityPriority,
+    type: 'varchar',
     default: OpportunityPriority.MEDIUM,
   })
   priority: OpportunityPriority;
 
   @Column({
-    type: 'enum',
-    enum: OpportunitySource,
+    type: 'varchar',
     default: OpportunitySource.OTHER,
   })
   source: OpportunitySource;
@@ -159,10 +156,10 @@ export class Opportunity {
   @Column('simple-json', { nullable: true })
   tags: string[];
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   lastContactDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   nextFollowUpDate: Date;
 
   @Column('text', { nullable: true })

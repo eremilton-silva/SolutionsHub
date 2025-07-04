@@ -2,9 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { User } from './entities/user.entity';
-import { AppConfigService } from '../../common/config/app-config.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -14,7 +14,7 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
-    private appConfigService: AppConfigService,
+    private configService: ConfigService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -47,8 +47,8 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.appConfigService.jwtConfig.refreshSecret,
-      expiresIn: this.appConfigService.jwtConfig.refreshExpiresIn,
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET', 'default-refresh-secret'),
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN', '7d'),
     });
 
     // Update last login and refresh token
@@ -96,7 +96,7 @@ export class AuthService {
   async refreshToken(refreshToken: string) {
     try {
       const payload = this.jwtService.verify(refreshToken, {
-        secret: this.appConfigService.jwtConfig.refreshSecret,
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET', 'default-refresh-secret'),
       });
 
       const user = await this.userRepository.findOne({

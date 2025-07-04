@@ -40,15 +40,13 @@ export class User {
   password: string;
 
   @Column({
-    type: 'enum',
-    enum: UserRole,
+    type: 'varchar',
     default: UserRole.USER,
   })
   role: UserRole;
 
   @Column({
-    type: 'enum',
-    enum: UserStatus,
+    type: 'varchar',
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
