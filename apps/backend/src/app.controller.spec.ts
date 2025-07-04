@@ -15,8 +15,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return Solution Hub API message', () => {
+      const result = appController.getHello();
+      expect(result).toContain('Solution Hub API está funcionando!');
+      expect(result).toContain('/api/v1/info');
+      expect(result).toContain('/api/v1/health');
     });
   });
 });
