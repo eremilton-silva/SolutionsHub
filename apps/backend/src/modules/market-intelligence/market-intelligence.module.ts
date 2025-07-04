@@ -5,7 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { MarketIntelligenceController } from './market-intelligence.controller';
 import { MarketIntelligenceService } from './market-intelligence.service';
 import { PncpService } from './services/pncp.service';
-import { TenderMonitoringService } from './services/tender-monitoring.service';
+// import { TenderMonitoringService } from './services/tender-monitoring.service'; // Comentado temporariamente
 import { Tender } from './entities/tender.entity';
 import { TenderMonitoring } from './entities/tender-monitoring.entity';
 import { MarketAnalysis } from './entities/market-analysis.entity';
@@ -27,7 +27,7 @@ import { MarketAnalysis } from './entities/market-analysis.entity';
   providers: [
     MarketIntelligenceService,
     PncpService,
-    TenderMonitoringService,
+    // TenderMonitoringService, // Comentado temporariamente
   ],
   exports: [MarketIntelligenceService, PncpService],
 })

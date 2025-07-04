@@ -11,7 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { MarketIntelligenceService, TenderSearchParams } from './market-intelligence.service';
-import { TenderMonitoringService } from './services/tender-monitoring.service';
+// import { TenderMonitoringService } from './services/tender-monitoring.service'; // Comentado temporariamente
 import { PncpService } from './services/pncp.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenderMonitoring } from './entities/tender-monitoring.entity';
@@ -22,7 +22,7 @@ import { MarketAnalysis } from './entities/market-analysis.entity';
 export class MarketIntelligenceController {
   constructor(
     private marketIntelligenceService: MarketIntelligenceService,
-    private monitoringService: TenderMonitoringService,
+    // private monitoringService: TenderMonitoringService, // Comentado temporariamente
     private pncpService: PncpService,
   ) {}
 
@@ -63,7 +63,8 @@ export class MarketIntelligenceController {
     return this.marketIntelligenceService.getChartData();
   }
 
-  // Endpoints de Monitoramento
+  // Endpoints de Monitoramento - TEMPORARIAMENTE DESABILITADOS
+  /*
   @Get('monitoring')
   async getMonitorings(@Request() req) {
     return this.monitoringService.getUserMonitorings(req.user.id);
@@ -98,6 +99,7 @@ export class MarketIntelligenceController {
   async resumeMonitoring(@Param('id') id: string, @Request() req) {
     return this.monitoringService.resumeMonitoring(id, req.user.id);
   }
+  */
 
   // Endpoints de Análise de Mercado
   @Get('analysis')

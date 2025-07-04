@@ -4,7 +4,7 @@ import { Repository, FindOptionsWhere, Like, Between } from 'typeorm';
 import { Tender, TenderStatus, TenderType } from './entities/tender.entity';
 import { MarketAnalysis, AnalysisType, AnalysisStatus } from './entities/market-analysis.entity';
 import { PncpService } from './services/pncp.service';
-import { TenderMonitoringService } from './services/tender-monitoring.service';
+// import { TenderMonitoringService } from './services/tender-monitoring.service'; // Comentado temporariamente
 
 export interface TenderSearchParams {
   page?: number;
@@ -30,7 +30,7 @@ export class MarketIntelligenceService {
     @InjectRepository(MarketAnalysis)
     private analysisRepository: Repository<MarketAnalysis>,
     private pncpService: PncpService,
-    private monitoringService: TenderMonitoringService,
+    // private monitoringService: TenderMonitoringService, // Comentado temporariamente
   ) {}
 
   // Buscar licitações
@@ -133,7 +133,7 @@ export class MarketIntelligenceService {
         ...params,
       });
 
-      for (const pncpTender of searchResult.data) {
+      for (const pncpTender of searchResult.tenders) {
         try {
           // Verificar se já existe
           const existingTender = await this.tenderRepository.findOne({
